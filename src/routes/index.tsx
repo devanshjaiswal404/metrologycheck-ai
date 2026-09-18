@@ -133,14 +133,14 @@ function Workspace() {
         brand_name: product.brand,
         category: "Packaged Commodity",
         image_url:
-          images.front ||
-          images.back ||
-          images.ingredients ||
+          images["front"] ||
+          images["back"] ||
+          images["ingredients"] ||
           "https://placehold.co/600x400?text=Product+Scan",
         status: dbStatus,
         total_violations: violations,
       };
-      if (user) payload.inspector_id = user.id;
+      if (user) payload["inspector_id"] = user.id;
 
       const { data, error } = await db
         .from("inspected_products")
