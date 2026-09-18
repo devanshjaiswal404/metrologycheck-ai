@@ -58,7 +58,7 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <span
-      className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${map[status] ?? map.review}`}
+      className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${map[status] ?? map["review"]}`}
     >
       {status === "compliant" ? "Compliant" : status === "violation" ? "Violation" : "Review"}
     </span>

@@ -77,11 +77,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "MetrologyCheck AI — Legal Metrology Division" },
+      {
+        name: "description",
+        content: "Compliance inspection console for the Legal Metrology (Packaged Commodities) Rules, 2011.",
+      },
+      { name: "author", content: "Legal Metrology Division" },
+      { property: "og:title", content: "MetrologyCheck AI — Legal Metrology Division" },
+      {
+        property: "og:description",
+        content: "Audit packaged commodity labels and issue official violation notices.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
