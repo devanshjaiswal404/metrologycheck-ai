@@ -10,6 +10,9 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { LangProvider } from "@/lib/lang";
+import { TopBar } from "@/components/TopBar";
+import { Toaster } from "@/components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -77,11 +80,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "MetrologyCheck AI — Legal Metrology Division" },
+      {
+        name: "description",
+        content: "Compliance inspection console for the Legal Metrology (Packaged Commodities) Rules, 2011.",
+      },
+      { name: "author", content: "Legal Metrology Division" },
+      { property: "og:title", content: "MetrologyCheck AI — Legal Metrology Division" },
+      {
+        property: "og:description",
+        content: "Audit packaged commodity labels and issue official violation notices.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -119,8 +128,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <LangProvider>
+        <div className="min-h-screen bg-background text-foreground">
+          <TopBar />
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </div>
+        <Toaster position="top-right" />
+      </LangProvider>
     </QueryClientProvider>
   );
 }
