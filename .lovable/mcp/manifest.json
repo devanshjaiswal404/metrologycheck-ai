@@ -1,0 +1,211 @@
+{
+  "version": 1,
+  "sdk_version": "2.2.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "metrologycheck-ai",
+      "version": "0.1.0",
+      "title": "MetrologyCheck AI"
+    },
+    "tools": [
+      {
+        "name": "audit_label",
+        "title": "Audit a package label",
+        "description": "Run the Legal Metrology (Packaged Commodities) Rules, 2011 statutory clause audit on declared label text and return a per-rule verdict plus an overall compliance status.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "productName": {
+              "default": "",
+              "description": "Product name as printed on the pack.",
+              "type": "string"
+            },
+            "brand": {
+              "default": "",
+              "description": "Brand name.",
+              "type": "string"
+            },
+            "mrpText": {
+              "default": "",
+              "description": "MRP declaration text, e.g. \"MRP ₹240.00 (inclusive of all taxes)\".",
+              "type": "string"
+            },
+            "netQuantity": {
+              "default": "",
+              "description": "Net quantity declaration, e.g. \"Net Qty: 5 kg\".",
+              "type": "string"
+            },
+            "uspText": {
+              "default": "",
+              "description": "Unit sale price declaration, e.g. \"₹48.00 per kg\".",
+              "type": "string"
+            },
+            "manufacturerName": {
+              "default": "",
+              "description": "Manufacturer / packer / importer name.",
+              "type": "string"
+            },
+            "manufacturerAddress": {
+              "default": "",
+              "description": "Complete postal address including 6-digit PIN.",
+              "type": "string"
+            },
+            "consumerEmail": {
+              "default": "",
+              "description": "Consumer care email address.",
+              "type": "string"
+            },
+            "consumerPhone": {
+              "default": "",
+              "description": "Consumer care telephone / helpline number.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "save_inspection",
+        "title": "Save an inspection",
+        "description": "Audit the declared label text against LMPC 2011 and save the result to the inspection registry, including every detected violation.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "productName": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Product name as printed on the pack."
+            },
+            "brand": {
+              "default": "",
+              "description": "Brand name.",
+              "type": "string"
+            },
+            "mrpText": {
+              "default": "",
+              "description": "MRP declaration text.",
+              "type": "string"
+            },
+            "netQuantity": {
+              "default": "",
+              "description": "Net quantity declaration.",
+              "type": "string"
+            },
+            "uspText": {
+              "default": "",
+              "description": "Unit sale price declaration.",
+              "type": "string"
+            },
+            "manufacturerName": {
+              "default": "",
+              "description": "Manufacturer / packer name.",
+              "type": "string"
+            },
+            "manufacturerAddress": {
+              "default": "",
+              "description": "Complete postal address including PIN.",
+              "type": "string"
+            },
+            "consumerEmail": {
+              "default": "",
+              "description": "Consumer care email address.",
+              "type": "string"
+            },
+            "consumerPhone": {
+              "default": "",
+              "description": "Consumer care telephone number.",
+              "type": "string"
+            },
+            "inspector": {
+              "default": "Officer Devansh - Zone 1",
+              "description": "Inspecting officer recorded on the entry.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "productName"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_inspections",
+        "title": "List inspection records",
+        "description": "List saved inspection records from the registry, newest first. Optionally filter by compliance status or search product/brand name.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "search": {
+              "description": "Case-insensitive text to match against product name or brand.",
+              "type": "string"
+            },
+            "status": {
+              "description": "Filter by compliance status.",
+              "type": "string",
+              "enum": [
+                "compliant",
+                "violation",
+                "review"
+              ]
+            },
+            "limit": {
+              "default": 20,
+              "description": "Maximum records to return.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_inspection",
+        "title": "Get an inspection record",
+        "description": "Fetch one saved inspection record by id, including its declared label fields and every detected statutory violation.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Inspection record id returned by list_inspections."
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
