@@ -16,7 +16,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/supabase";
 import { useLang } from "@/lib/lang";
 import {
   auditProduct,
@@ -117,7 +117,7 @@ function Workspace() {
     }
     setSaving(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("inspected_products")
         .insert({
           product_name: product.productName,
@@ -139,7 +139,7 @@ function Workspace() {
 
       const failing = checks.filter((c) => c.status !== "pass");
       if (failing.length && data) {
-        const { error: vErr } = await supabase.from("detected_violations").insert(
+        const { error: vErr } = await db.from("detected_violations").insert(
           failing.map((c) => ({
             product_id: data.id,
             rule_code: c.code,
@@ -151,8 +151,10 @@ function Workspace() {
         if (vErr) throw vErr;
       }
       toast.success("Inspection saved to the registry.");
-    } catch {
-      toast.error("Could not reach the registry — inspection kept locally.");
+    } catch (e) {
+      toast.error(
+        `Could not save to the registry: ${e instanceof Error ? e.message : "unknown error"}`,
+      );
     } finally {
       setSaving(false);
     }
