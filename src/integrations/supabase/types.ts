@@ -14,7 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      detected_violations: {
+        Row: {
+          created_at: string
+          detail: string | null
+          id: string
+          product_id: string
+          rule_code: string
+          rule_title: string
+          severity: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          product_id: string
+          rule_code: string
+          rule_title: string
+          severity?: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          product_id?: string
+          rule_code?: string
+          rule_title?: string
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "detected_violations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "inspected_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspected_products: {
+        Row: {
+          brand: string | null
+          consumer_care_email: string | null
+          consumer_care_phone: string | null
+          id: string
+          inspector: string | null
+          manufacturer_address: string | null
+          manufacturer_name: string | null
+          mrp: string | null
+          net_quantity: string | null
+          product_name: string
+          scanned_at: string
+          status: string
+          unit_sale_price: string | null
+          violations_count: number
+        }
+        Insert: {
+          brand?: string | null
+          consumer_care_email?: string | null
+          consumer_care_phone?: string | null
+          id?: string
+          inspector?: string | null
+          manufacturer_address?: string | null
+          manufacturer_name?: string | null
+          mrp?: string | null
+          net_quantity?: string | null
+          product_name: string
+          scanned_at?: string
+          status?: string
+          unit_sale_price?: string | null
+          violations_count?: number
+        }
+        Update: {
+          brand?: string | null
+          consumer_care_email?: string | null
+          consumer_care_phone?: string | null
+          id?: string
+          inspector?: string | null
+          manufacturer_address?: string | null
+          manufacturer_name?: string | null
+          mrp?: string | null
+          net_quantity?: string | null
+          product_name?: string
+          scanned_at?: string
+          status?: string
+          unit_sale_price?: string | null
+          violations_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
