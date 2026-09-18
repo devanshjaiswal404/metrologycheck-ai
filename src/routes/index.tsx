@@ -117,22 +117,34 @@ function Workspace() {
     }
     setSaving(true);
     try {
+      const {
+        data: { user },
+      } = await db.auth.getUser();
+
+      const dbStatus =
+        status === "compliant"
+          ? "COMPLIANT"
+          : status === "review"
+            ? "REVIEW_REQUIRED"
+            : "NON_COMPLIANT";
+
+      const payload: Record<string, unknown> = {
+        product_name: product.productName,
+        brand_name: product.brand,
+        category: "Packaged Commodity",
+        image_url:
+          images["front"] ||
+          images["back"] ||
+          images["ingredients"] ||
+          "https://placehold.co/600x400?text=Product+Scan",
+        status: dbStatus,
+        total_violations: violations,
+      };
+      if (user) payload["inspector_id"] = user.id;
+
       const { data, error } = await db
         .from("inspected_products")
-        .insert({
-          product_name: product.productName,
-          brand: product.brand,
-          mrp: product.mrpText,
-          net_quantity: product.netQuantity,
-          unit_sale_price: product.uspText,
-          manufacturer_name: product.manufacturerName,
-          manufacturer_address: product.manufacturerAddress,
-          consumer_care_email: product.consumerEmail,
-          consumer_care_phone: product.consumerPhone,
-          status,
-          violations_count: violations,
-          inspector: "Officer Devansh - Zone 1",
-        })
+        .insert(payload)
         .select("id")
         .single();
       if (error) throw error;
@@ -142,19 +154,28 @@ function Workspace() {
         const { error: vErr } = await db.from("detected_violations").insert(
           failing.map((c) => ({
             product_id: data.id,
-            rule_code: c.code,
-            rule_title: c.title,
-            severity: c.status === "fail" ? "violation" : "review",
-            detail: c.detail,
+            rule_clause: c.code,
+            violation_title: c.title,
+            severity: c.status === "fail" ? "CRITICAL" : "MODERATE",
+            extracted_text: c.detail,
+            remediation:
+              c.status === "fail"
+                ? "Rectify the label declaration and re-verify before retail display."
+                : "Manual officer review required to confirm compliance.",
           })),
         );
         if (vErr) throw vErr;
       }
       toast.success("Inspection saved to the registry.");
-    } catch (e) {
-      toast.error(
-        `Could not save to the registry: ${e instanceof Error ? e.message : "unknown error"}`,
-      );
+    } catch (error) {
+      console.error("Supabase Save Error Details:", error);
+      const message =
+        error && typeof error === "object" && "message" in error
+          ? String((error as { message: unknown }).message)
+          : error instanceof Error
+            ? error.message
+            : "unknown error";
+      toast.error(`Could not save to the registry: ${message}`);
     } finally {
       setSaving(false);
     }

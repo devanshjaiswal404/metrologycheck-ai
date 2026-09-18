@@ -25,24 +25,24 @@ export const Route = createFileRoute("/records")({
 interface Row {
   id: string;
   product_name: string;
-  brand: string | null;
+  brand_name: string | null;
   status: string;
-  violations_count: number;
-  scanned_at: string;
+  total_violations: number;
+  created_at: string;
 }
 
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    compliant: "border-success/50 bg-success/10 text-success",
-    violation: "border-danger/50 bg-danger/10 text-danger",
-    review: "border-warning/50 bg-warning/10 text-warning",
+    COMPLIANT: "border-success/50 bg-success/10 text-success",
+    NON_COMPLIANT: "border-danger/50 bg-danger/10 text-danger",
+    REVIEW_REQUIRED: "border-warning/50 bg-warning/10 text-warning",
   };
   return (
     <span
-      className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${map[status] ?? map["review"]}`}
+      className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${map[status] ?? map["REVIEW_REQUIRED"]}`}
     >
-      {status === "compliant" ? "Compliant" : status === "violation" ? "Violation" : "Review"}
+      {status === "COMPLIANT" ? "Compliant" : status === "NON_COMPLIANT" ? "Non-Compliant" : "Review"}
     </span>
   );
 }
@@ -57,8 +57,8 @@ function Records() {
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await db
         .from("inspected_products")
-        .select("id, product_name, brand, status, violations_count, scanned_at")
-        .order("scanned_at", { ascending: false });
+        .select("id, product_name, brand_name, status, total_violations, created_at")
+        .order("created_at", { ascending: false });
       if (error) throw new Error(error.message);
       return (data ?? []) as Row[];
     },
@@ -67,7 +67,7 @@ function Records() {
   const rows = (data ?? []).filter(
     (r) =>
       (filter === "all" || r.status === filter) &&
-      (r.product_name + " " + (r.brand ?? "")).toLowerCase().includes(q.toLowerCase()),
+      (r.product_name + " " + (r.brand_name ?? "")).toLowerCase().includes(q.toLowerCase()),
   );
 
   return (
@@ -95,9 +95,9 @@ function Records() {
             className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground outline-none"
           >
             <option value="all">All statuses</option>
-            <option value="compliant">Compliant</option>
-            <option value="violation">Violation</option>
-            <option value="review">Review</option>
+            <option value="COMPLIANT">Compliant</option>
+            <option value="NON_COMPLIANT">Non-Compliant</option>
+            <option value="REVIEW_REQUIRED">Review</option>
           </select>
         </div>
       </div>
@@ -139,14 +139,14 @@ function Records() {
             {rows.map((r) => (
               <tr key={r.id} className="hover:bg-muted/40">
                 <td className="px-4 py-3 font-semibold text-foreground">{r.product_name}</td>
-                <td className="px-4 py-3 text-muted-foreground">{r.brand ?? "—"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{r.brand_name ?? "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {new Date(r.scanned_at).toLocaleString("en-IN")}
+                  {new Date(r.created_at).toLocaleString("en-IN")}
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={r.status} />
                 </td>
-                <td className="px-4 py-3 font-bold text-foreground">{r.violations_count}</td>
+                <td className="px-4 py-3 font-bold text-foreground">{r.total_violations}</td>
                 <td className="px-4 py-3">
                   <button
                     onClick={() => setSelected(r)}
@@ -172,8 +172,8 @@ function Records() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-base font-bold">{selected.product_name}</h2>
-            <p className="mb-4 text-xs text-muted-foreground">{selected.brand}</p>
-            <AuditDetail id={selected.id} count={selected.violations_count} />
+            <p className="mb-4 text-xs text-muted-foreground">{selected.brand_name}</p>
+            <AuditDetail id={selected.id} count={selected.total_violations} />
             <button
               onClick={() => setSelected(null)}
               className="mt-5 w-full rounded-lg bg-primary py-2 text-xs font-bold text-primary-foreground"
@@ -193,7 +193,7 @@ function AuditDetail({ id, count }: { id: string; count: number }) {
     queryFn: async () => {
       const { data } = await db
         .from("detected_violations")
-        .select("rule_code, rule_title, severity, detail")
+        .select("rule_clause, violation_title, severity, extracted_text, remediation")
         .eq("product_id", id);
       return data ?? [];
     },
@@ -214,12 +214,15 @@ function AuditDetail({ id, count }: { id: string; count: number }) {
       {data.map((v, i) => (
         <li key={i} className="rounded-lg border border-border bg-background/50 p-3">
           <p
-            className={`text-[11px] font-black ${v.severity === "violation" ? "text-danger" : "text-warning"}`}
+            className={`text-[11px] font-black ${v.severity === "CRITICAL" ? "text-danger" : "text-warning"}`}
           >
-            {v.rule_code} — {v.severity === "violation" ? "VIOLATION" : "REVIEW"}
+            {v.rule_clause} — {v.severity}
           </p>
-          <p className="mt-1 text-xs text-foreground">{v.rule_title}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{v.detail}</p>
+          <p className="mt-1 text-xs text-foreground">{v.violation_title}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{v.extracted_text}</p>
+          {v.remediation && (
+            <p className="mt-1 text-xs text-muted-foreground italic">Remediation: {v.remediation}</p>
+          )}
         </li>
       ))}
     </ul>
