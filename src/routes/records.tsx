@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Search, FileSearch, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/supabase";
 
 export const Route = createFileRoute("/records")({
   head: () => ({
@@ -31,24 +31,6 @@ interface Row {
   scanned_at: string;
 }
 
-const FALLBACK: Row[] = [
-  {
-    id: "demo-1",
-    product_name: "Chakki Fresh Atta",
-    brand: "Annapurna Foods",
-    status: "compliant",
-    violations_count: 0,
-    scanned_at: new Date().toISOString(),
-  },
-  {
-    id: "demo-2",
-    product_name: "Crunchy Glucose Biscuits",
-    brand: "SweetBite",
-    status: "violation",
-    violations_count: 3,
-    scanned_at: new Date(Date.now() - 864e5).toISOString(),
-  },
-];
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -70,15 +52,15 @@ function Records() {
   const [filter, setFilter] = useState("all");
   const [selected, setSelected] = useState<Row | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["records"],
     queryFn: async (): Promise<Row[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("inspected_products")
         .select("id, product_name, brand, status, violations_count, scanned_at")
         .order("scanned_at", { ascending: false });
-      if (error || !data?.length) return FALLBACK;
-      return data as Row[];
+      if (error) throw new Error(error.message);
+      return (data ?? []) as Row[];
     },
   });
 
@@ -140,7 +122,14 @@ function Records() {
                 </td>
               </tr>
             )}
-            {!isLoading && rows.length === 0 && (
+            {!isLoading && error && (
+              <tr>
+                <td colSpan={6} className="px-4 py-10 text-center text-danger">
+                  Could not load records: {error instanceof Error ? error.message : "unknown error"}
+                </td>
+              </tr>
+            )}
+            {!isLoading && !error && rows.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
                   No inspections match this filter.
@@ -202,7 +191,7 @@ function AuditDetail({ id, count }: { id: string; count: number }) {
   const { data, isLoading } = useQuery({
     queryKey: ["violations", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await db
         .from("detected_violations")
         .select("rule_code, rule_title, severity, detail")
         .eq("product_id", id);
