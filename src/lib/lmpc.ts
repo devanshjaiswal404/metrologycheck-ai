@@ -63,7 +63,7 @@ const NON_STANDARD_UNITS = ["gms", "gm.", "grams", "kilos", "kgs", "ml.", "lts",
 
 function parseNumber(text: string): number | null {
   const m = text.replace(/,/g, "").match(/(\d+(\.\d+)?)/);
-  return m ? parseFloat(m[1]) : null;
+  return m && m[1] ? parseFloat(m[1]) : null;
 }
 
 export function auditProduct(p: ProductData): RuleCheck[] {
